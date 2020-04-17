@@ -10,11 +10,11 @@ endif()
 
 #---------------------------------------------------------------------
 project( elastix )
-
+set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC" )
 #---------------------------------------------------------------------
 # Generate executable, static library or dynamic library.
 mark_as_advanced( ELASTIX_BUILD_EXECUTABLE )
-option( ELASTIX_BUILD_EXECUTABLE "Generate executable or library?" ON )
+option( ELASTIX_BUILD_EXECUTABLE "Generate executable or library?" OFF )
 
 if( NOT ELASTIX_BUILD_EXECUTABLE )
   add_definitions( -D_ELASTIX_BUILD_LIBRARY )
@@ -28,7 +28,11 @@ endif()
 #---------------------------------------------------------------------
 # Find ITK.
 find_package( ITK REQUIRED )
-include( ${ITK_USE_FILE} )
+if (EXISTS ${ITK_USE_FILE})
+  include( ${ITK_USE_FILE} )
+else()
+  MESSAGE(FATAL_ERROR "ITK Use file not found")
+endif()
 
 #---------------------------------------------------------------------
 # Add the CMake dir as an additional module path,
@@ -141,13 +145,6 @@ option( ELASTIX_USE_MEVISDICOMTIFF
 mark_as_advanced( ELASTIX_USER_COMPONENT_DIRS )
 set( ELASTIX_USER_COMPONENT_DIRS "" CACHE PATH
   "directories with user defined elastix components" )
-
-#---------------------------------------------------------------------
-# elastix depends on some ITK settings
-
-if( NOT ITKReview_LOADED )
-  message( SEND_ERROR "Module_ITKReview has not been set to ON when compiling ITK. This option is mandatory for elastix to build.\nPlease recompile your ITK installation." )
-endif()
 
 #---------------------------------------------------------------------
 # If IDE supports it, do use folder view.
@@ -390,139 +387,52 @@ endif()
 #---------------------------------------------------------------------
 # Packaging
 
-mark_as_advanced( ELASTIX_ENABLE_PACKAGER )
-option( ELASTIX_ENABLE_PACKAGER "Enable elastix packager using CPack" OFF )
+# Version information
+# If the next line is uncommented the package name will be like
+# elastix-4.3-win64 instead of elastix-4.3.0-win64
+#set( CPACK_PACKAGE_VERSION ${ELASTIX_VERSION} )
+set( CPACK_PACKAGE_VERSION_MAJOR ${ELASTIX_VERSION_MAJOR} )
+set( CPACK_PACKAGE_VERSION_MINOR ${ELASTIX_VERSION_MINOR} )
+set( CPACK_PACKAGE_VERSION_PATCH "11" )
+# Set install directory.
+set(CPACK_INSTALL_PREFIX "/usr")
+# set(CPACK_SET_DESTDIR "on")
+# Debian package
 
-if( ELASTIX_ENABLE_PACKAGER )
-  # Version information
-  # If the next line is uncommented the package name will be like
-  # elastix-4.3-win64 instead of elastix-4.3.0-win64
-  #set( CPACK_PACKAGE_VERSION ${ELASTIX_VERSION} )
-  set( CPACK_PACKAGE_VERSION_MAJOR ${ELASTIX_VERSION_MAJOR} )
-  set( CPACK_PACKAGE_VERSION_MINOR ${ELASTIX_VERSION_MINOR} )
-  set( CPACK_PACKAGE_VERSION_PATCH "0" )
+# Also install the copyright file, since when the user enables packaging
+# we assume that the package is meant to distribute.
+install( FILES "${elastix_SOURCE_DIR}/LICENSE" DESTINATION . )
+install( FILES "${elastix_SOURCE_DIR}/NOTICE" DESTINATION . )
 
-  # Also install the copyright file, since when the user enables packaging
-  # we assume that the package is meant to distribute.
-  install( FILES "${elastix_SOURCE_DIR}/LICENSE" DESTINATION . )
-  install( FILES "${elastix_SOURCE_DIR}/NOTICE" DESTINATION . )
+set(CPACK_GENERATOR "DEB")
+set(CPACK_PACKAGE_DESCRIPTION "Elastix: a toolbox for rigid and nonrigid registration of images")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "A library based on ITK (Insight Segmentation and Registration Toolkit)")
+set(CPACK_PACKAGE_VENDOR "Bossa Nova Robotics")
+set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Akshay Prasad")
+set(CPACK_PACKAGE_CONTACT "akshay.prasad@bossanova.com")
+set(CPACK_PACKAGE_FILE_NAME "${CMAKE_PROJECT_NAME}_${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}.${CPACK_PACKAGE_VERSION_PATCH}")
+set(CPACK_SOURCE_PACKAGE_FILE_NAME "${CMAKE_PROJECT_NAME}_${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}.${CPACK_PACKAGE_VERSION_PATCH}")
+set( CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/NOTICE" )
 
-  # We have split the elastix package into two components:
-  # - the core: elastix and transformix
-  # - the libraries: ANNlib and cudart when ELASTIX_USE_CUDA ON
-  # NOTE: Currently does not work for nsis. A bug related to this
-  # seems to be fixed in the upcoming CMake 2.8.3
-  # Therefore, disable component support for now.
-  #set( CPACK_COMPONENTS_ALL core libraries Unspecified )
-  #  CPACK_ADD_COMPONENT( core
-  #  "Core files"
-  #  DESCRIPTION "Contains elastix and transformix"
-  #  REQUIRED
-  #  DEPENDS libraries )
-  #   [GROUP group]
-  #   [DEPENDS comp1 comp2 ... ]
-  #   [INSTALL_TYPES type1 type2 ... ]
-  #   [DOWNLOADED]
-  #   [ARCHIVE_FILE filename])
-  #CPACK_ADD_COMPONENT( libraries
-  #  "Libraries"
-  #  DESCRIPTION "Contains the libraries"
-  #  REQUIRED )
-#set( CPACK_COMPONENT_CORE_DISPLAY_NAME "Core files" )
-#set( CPACK_COMPONENT_LIBRARIES_DISPLAY_NAME "Libraries" )
-#set( CPACK_COMPONENT_CORE_DESCRIPTION "Contains elastix and transformix" )
-#set( CPACK_COMPONENT_LIBRARIES_DESCRIPTION "Contains the libraries" )
-#set( CPACK_COMPONENT_CORE_DEPENDS libraries )
-#set( CPACK_COMPONENT_CORE_REQUIRED ON )
-#set( CPACK_COMPONENT_LIBRARIES_REQUIRED ON )
+# The default install directories: .../elastix_v4.3
+set( CPACK_PACKAGE_INSTALL_DIRECTORY
+  "elastix_v${ELASTIX_VERSION_MAJOR}.${ELASTIX_VERSION_MINOR}" )
+set( CPACK_PACKAGE_INSTALL_REGISTRY_KEY
+  "elastix_v${ELASTIX_VERSION_MAJOR}.${ELASTIX_VERSION_MINOR}" )
 
-  # The default package filename is
-  # ${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}-${CPACK_SYSTEM_NAME}
-  # which is like elastix-4.3.0-win64, or elastix-4.3.0-linux-i686
-  # Currently however we use elastix_windows64_v4.3
-  # We can change our naming schedule or come close to it using:
-  #set( CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}_${CPACK_SYSTEM_NAME}_v${CPACK_PACKAGE_VERSION}" )
-  # but it doesn't work since these variables are not defined yet
-  # Moving include(CPack) to above introduces other errors.
-  #set( CPACK_PACKAGE_FILE_NAME "${PROJECT_NAME}_${CMAKE_SYSTEM_NAME}_v${ELASTIX_VERSION}" )
-  # also does not work properly. Just use the default for now.
+# Do not include a subdirectory in the zip
+set( CPACK_INCLUDE_TOPLEVEL_DIRECTORY 0 )
 
-  # General information
-  set( CPACK_PACKAGE_VENDOR "Stefan Klein and Marius Staring" )
-  set( CPACK_PACKAGE_DESCRIPTION_SUMMARY
-    "elastix is an image registration toolkit" )
-  #set( CPACK_PACKAGE_DESCRIPTION_FILE
-  #  "${CMAKE_CURRENT_SOURCE_DIR}/ReadMe.txt" )
-  set( CPACK_RESOURCE_FILE_LICENSE
-	  "${CMAKE_CURRENT_SOURCE_DIR}/NOTICE" )
+set( CPACK_SET_DESTDIR "OFF")
 
-  # The default install directories: .../elastix_v4.3
-  set( CPACK_PACKAGE_INSTALL_DIRECTORY
-    "elastix_v${ELASTIX_VERSION_MAJOR}.${ELASTIX_VERSION_MINOR}" )
-  set( CPACK_PACKAGE_INSTALL_REGISTRY_KEY
-    "elastix_v${ELASTIX_VERSION_MAJOR}.${ELASTIX_VERSION_MINOR}" )
+# Make sure the directory structure is kept in the source zip
+# and that also the dox and tools directories are included.
+set( CPACK_SOURCE_INSTALLED_DIRECTORIES
+  "${elastix_SOURCE_DIR};/src;${ELASTIX_DOX_DIR};/dox;${ELASTIX_TOOLS_DIR};/tools" )
 
-  # Do not include a subdirectory in the zip
-  set( CPACK_INCLUDE_TOPLEVEL_DIRECTORY 0 )
-
-  set( CPACK_SET_DESTDIR "OFF")
-
-  # Make sure the directory structure is kept in the source zip
-  # and that also the dox and tools directories are included.
-  set( CPACK_SOURCE_INSTALLED_DIRECTORIES
-    "${elastix_SOURCE_DIR};/src;${ELASTIX_DOX_DIR};/dox;${ELASTIX_TOOLS_DIR};/tools" )
-
-  # ??
-  #set(CPACK_PACKAGE_EXECUTABLES "MyExecutable" "My Executable")
-
-  # For the windows nsis installer only (is this if-check necessary?)
-  if( WIN32 AND NOT UNIX )
-    # NOTE: There is a bug in NSI that does not handle full unix paths properly.
-    # Make sure there is at least one set of four (4) backlashes
-    # (CMake escapes 2, and the other gets escaped too in some second step)
-
-    # Set the generators. If left blank the user has all options.
-    set( CPACK_GENERATOR "NSIS;ZIP")
-
-    # Adding information
-    set( CPACK_NSIS_DISPLAY_NAME
-      "${CPACK_PACKAGE_INSTALL_DIRECTORY} elastix" )
-    set( CPACK_NSIS_HELP_LINK "http:\\\\\\\\elastix.isi.uu.nl" )
-    set( CPACK_NSIS_URL_INFO_ABOUT "http:\\\\\\\\elastix.isi.uu.nl" )
-    set( CPACK_NSIS_CONTACT "elastix@bigr.nl" )
-    set( CPACK_NSIS_PACKAGE_NAME "elastix" )
-    set( CPACK_NSIS_DISPLAY_NAME "elastix" )
-
-    # Adding icons and images to make it look nice:
-    # 1 A branding image that will be displayed inside the installer
-    # 2 The icon file(.ico) for the generated install program
-    # 3 The icon file(.ico) for the generated uninstall program
-    set( CPACK_PACKAGE_ICON
-      "${CMAKE_CURRENT_SOURCE_DIR}/../dox/art\\\\elastix_logo_full_small.bmp" )
-    set( CPACK_NSIS_MUI_ICON
-      "${CMAKE_CURRENT_SOURCE_DIR}/../dox/art\\\\elastix_logo_64.ico" )
-    set( CPACK_NSIS_MUI_UNIICON
-      "${CMAKE_CURRENT_SOURCE_DIR}/../dox/art\\\\elastix_logo_64.ico" )
-
-    # Create an option in the installer that asks if elastix
-    # needs to be added to the system path
-    set( CPACK_NSIS_MODIFY_PATH ON )
-
-  else()
-    # set the generators
-    set( CPACK_GENERATOR "TBZ2;ZIP" )
-
-    # set(CPACK_STRIP_FILES "bin/MyExecutable")
-    #set(CPACK_SOURCE_STRIP_FILES "")
-  endif()
-
-  # Uncomment the following line if we want to include the system
-  # dll's in the distribution!
-  #include( InstallRequiredSystemLibraries )
-
-  # This include will do all the work.
-  include( CPack )
-endif()
+# set the generators
+# Setting the install directory. By default it is installed in usr/local/
+set(CPACK_DEBIAN_ARCHITECTURE ${CMAKE_SYSTEM_PROCESSOR})
 
 #---------------------------------------------------------------------
 # Make it easier to include elastix functionality in other programs.
@@ -542,3 +452,7 @@ set( elxUSE_FILE ${elastix_BINARY_DIR}/UseElastix.cmake )
 configure_file( ${elastix_SOURCE_DIR}/CMake/UseElastix.cmake.in
  ${elxUSE_FILE} @ONLY )
 
+install( FILES "${elastix_SOURCE_DIR}/build/UseElastix.cmake"
+         DESTINATION "/usr/lib/cmake/elastix" )
+
+include(CPack)

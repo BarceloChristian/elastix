@@ -1006,7 +1006,7 @@ ElastixMain::GetImageInformationFromFile(
     testReader->SetFileName( filename.c_str() );
 
     /** Generate all information. */
-    testReader->GenerateOutputInformation();
+    testReader->UpdateOutputInformation();
 
     /** Extract the required information. */
     itk::ImageIOBase::Pointer testImageIO = testReader->GetImageIO();

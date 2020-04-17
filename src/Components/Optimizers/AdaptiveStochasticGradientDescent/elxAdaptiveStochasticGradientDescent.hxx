@@ -190,8 +190,8 @@ AdaptiveStochasticGradientDescent< TElastix >
     /** Set the maximum step length: the maximum displacement of a voxel in mm.
      * Compute default value: mean in-plane spacing of fixed and moving image.
      */
-    const unsigned int fixdim = vnl_math_min( this->GetElastix()->FixedDimension, 2 );
-    const unsigned int movdim = vnl_math_min( this->GetElastix()->MovingDimension, 2 );
+    const unsigned int fixdim = vnl_math_min(this->GetElastix()->FixedDimension, 2u);
+    const unsigned int movdim = vnl_math_min(this->GetElastix()->MovingDimension, 2u);
     double             sum    = 0.0;
     for( unsigned int d = 0; d < fixdim; ++d )
     {
