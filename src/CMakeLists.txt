@@ -225,6 +225,19 @@ set( elxINCLUDE_DIRECTORIES
 
 include_directories( ${elxINCLUDE_DIRECTORIES} )
 
+install(DIRECTORY "${CMAKE_BINARY_DIR}/bin/" DESTINATION "/usr/lib")
+
+# install header files and set variable for UseElastix.cmake
+foreach (dir ${elxCommon_INCLUDE_DIRECTORIES} ${elxCommon_OpenCL_INCLUDE_DIRECTORIES}
+             ${elxCore_INCLUDE_DIRECTORIES} ${elxComponents_INCLUDE_DIRECTORIES})
+  # Replace previously set directories with the install directory counterpart
+  string(REPLACE "${elastix_SOURCE_DIR}/" "/usr/include/" install_dir ${dir})
+  # Install the header files
+  install(DIRECTORY ${dir} DESTINATION "/usr/include")
+  # And append the install directories to elxINSTALL_DIRECTORIES for configuring UseElastix
+  list(APPEND elxINSTALL_DIRECTORIES ${install_dir})
+endforeach(dir)
+
 # include the OpenCL directories
 # The key-word BEFORE is important here, because the elastix distribution
 # contains some files with the same name as in the ITK distribution.
@@ -436,12 +449,14 @@ set(CPACK_DEBIAN_ARCHITECTURE ${CMAKE_SYSTEM_PROCESSOR})
 
 #---------------------------------------------------------------------
 # Make it easier to include elastix functionality in other programs.
-
+set( LIB_CMAKE_PATH "/usr/lib/cmake/elastix" )
 # Save library dependencies.
 # The library dependencies file.
-set( elxLIBRARY_DEPENDS_FILE ${elastix_BINARY_DIR}/elxLibraryDepends.cmake )
-export_library_dependencies( ${elxLIBRARY_DEPENDS_FILE} )
-
+export_library_dependencies( ${elastix_BINARY_DIR}/elxLibraryDepends.cmake )
+install( FILES ${elastix_BINARY_DIR}/elxLibraryDepends.cmake
+         DESTINATION ${LIB_CMAKE_PATH} )
+set( elxLIBRARY_DEPENDS_FILE "${LIB_CMAKE_PATH}/elxLibraryDepends.cmake" )
+set( LIBRARY_INSTALL_PATH "/usr/lib" )
 # The "use" file.
 set( elxUSE_FILE ${elastix_BINARY_DIR}/UseElastix.cmake )
 

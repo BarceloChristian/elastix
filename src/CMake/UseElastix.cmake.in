@@ -11,12 +11,12 @@
 #
 
 # Set all necessary include directories for elastix
-SET( ELASTIX_INCLUDE_DIRECTORIES @elxINCLUDE_DIRECTORIES@ )
-INCLUDE_DIRECTORIES( ${ELASTIX_INCLUDE_DIRECTORIES} )
+SET( ELASTIX_INSTALL_DIRECTORIES @elxINSTALL_DIRECTORIES@ )
+INCLUDE_DIRECTORIES( ${ELASTIX_INSTALL_DIRECTORIES} )
 
 # Set the directory that contains the elastix libraries,
 # such as elxCore, elxCommon, xoutlib etc.
-LINK_DIRECTORIES( "@LIBRARY_OUTPUT_PATH@" )
+LINK_DIRECTORIES( "@LIBRARY_INSTALL_PATH@" )
 
 # Read in the library dependencies
 INCLUDE( "@elxLIBRARY_DEPENDS_FILE@" )
