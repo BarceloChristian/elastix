@@ -1,0 +1,14 @@
+# - Config file for the Elastix package
+# It defines the following variables
+#  ELASTIX_INCLUDE_DIRS - include directories for FooBar
+
+# Compute paths
+get_filename_component( ELASTIX_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH )
+set(ELASTIX_INCLUDE_DIRS "@CONF_INCLUDE_DIRS@")
+
+# Our library dependencies (contains definitions for IMPORTED targets)
+if(NOT TARGET elastix AND NOT ELASTIX_BINARY_DIR)
+  include("@INSTALL_CMAKE_DIR@/UseElastix.cmake")
+endif()
+
+set(ELASTIX_LIBRARIES ELASTIX)

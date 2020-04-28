@@ -107,7 +107,8 @@ public:
     bool performLogging,
     bool performCout,
     ImagePointer fixedMask = 0,
-    ImagePointer movingMask = 0 );
+    ImagePointer movingMask = 0,
+    unsigned int max_threads = 0 );
 
   int RegisterImages( ImagePointer fixedImage,
     ImagePointer movingImage,
@@ -116,7 +117,8 @@ public:
     bool performLogging,
     bool performCout,
     ImagePointer fixedMask = 0,
-    ImagePointer movingMask = 0 );
+    ImagePointer movingMask = 0,
+    unsigned int max_threads = 0 );
 
   /** Getter for result image. */
   ImagePointer GetResultImage( void );
