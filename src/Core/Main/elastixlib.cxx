@@ -110,6 +110,7 @@ ELASTIX::RegisterImages(
   bool performCout,
   ImagePointer fixedMask,
   ImagePointer movingMask,
+  std::string initialTransformPath,
   unsigned int max_threads )
 {
   std::vector< ParameterMapType > parameterMaps( 1 );
@@ -119,7 +120,8 @@ ELASTIX::RegisterImages(
     parameterMaps,
     outputPath,
     performLogging, performCout,
-    fixedMask, movingMask, max_threads );
+    fixedMask, movingMask,
+    initialTransformPath, max_threads );
 
 } // end RegisterImages()
 
@@ -138,6 +140,7 @@ ELASTIX::RegisterImages(
   bool performCout,
   ImagePointer fixedMask,
   ImagePointer movingMask,
+  std::string initialTransformPath,
   unsigned int max_threads )
 {
   /** Some typedef's. */
@@ -207,6 +210,11 @@ ELASTIX::RegisterImages(
   if( max_threads == 0 )
   {
     argMap.insert(ArgumentMapEntryType( "-threads", "2" ));
+  }
+
+  if( initialTransformPath != "" )
+  {
+    argMap.insert(ArgumentMapEntryType( "-t0", initialTransformPath ));
   }
 
   if( argMap.count( key.c_str() ) == 0 )

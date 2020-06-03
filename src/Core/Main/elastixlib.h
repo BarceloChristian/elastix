@@ -108,6 +108,7 @@ public:
     bool performCout,
     ImagePointer fixedMask = 0,
     ImagePointer movingMask = 0,
+    std::string initialTransformPath = "",
     unsigned int max_threads = 0 );
 
   int RegisterImages( ImagePointer fixedImage,
@@ -118,6 +119,7 @@ public:
     bool performCout,
     ImagePointer fixedMask = 0,
     ImagePointer movingMask = 0,
+    std::string initialTransformPath = "",
     unsigned int max_threads = 0 );
 
   /** Getter for result image. */
